@@ -5,6 +5,10 @@
 
 (def *result* (atom {:status "PASS", :return "", :output "", :error "", :traceback ""}))
 
+(defn find-kw-fn
+  [ns-name fn-name]
+  (ns-resolve (find-ns ns-name) (symbol fn-name)))
+
 (defn- handle-return-val
   "Convert everything to RobotFramework-acceptable types. See implementations in other languages for examples"
   [ret]
@@ -31,8 +35,8 @@
 
 (defn- run-keyword
   "Run a single keyword"
-  [name args]
-  (let [a-fn (ns-resolve (find-ns 'robot-remote-server.keyword) (symbol name))
+  [kw-name args]
+  (let [a-fn (find-kw-fn 'robot-remote-server.keyword kw-name)
         output (with-out-str (try
                                (apply a-fn args)
                                (catch Exception e
@@ -48,13 +52,13 @@
   (vec (map #(.toString %) (map first (ns-publics 'robot-remote-server.keyword)))))
 
 (defn- get-keyword-arguments
-  [name]
-  (let [a-fn (ns-resolve (find-ns 'robot-remote-server.keyword) (symbol name))]
+  [kw-name]
+  (let [a-fn (find-kw-fn 'robot-remote-server.keyword kw-name)]
     (vec (map #(.toString %) (last (:arglists (meta a-fn)))))))
 
 (defn- get-keyword-documentation
-  [name]
-  (let [a-fn (ns-resolve (find-ns 'robot-remote-server.keyword) (symbol name))]
+  [kw-name]
+  (let [a-fn (find-kw-fn 'robot-remote-server.keyword kw-name)]
     (:doc (meta a-fn))))
 
 (declare *server*)
