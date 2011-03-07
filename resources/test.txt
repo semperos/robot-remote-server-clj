@@ -1,0 +1,6 @@
+***Settings***
+Library         Remote  http://localhost:8271
+
+***Test Cases***
+Test Keywords
+    Open Dialog
