@@ -40,8 +40,7 @@
                                    (reset! *result* {:status "FAIL", :return "", :output "",
                                                      :error (with-out-str (prn e)), :traceback (with-out-str (.printStackTrace e))})
                                    @*result*))))]
-    (swap! *result* assoc :output output)
-    (swap! *result* assoc :return output)
+    (swap! *result* assoc :output output :return output)
     @*result*))
 
 (defn- get-keyword-names
