@@ -62,6 +62,10 @@
          ([hndlr# opts#]
             (reset! *server* (run-jetty hndlr# opts#)))))))
 
+(defn server-stop!
+  []
+  (.stop @*server*))
+
 (comment
   
   (defn- handle-return-val
