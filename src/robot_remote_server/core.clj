@@ -56,9 +56,7 @@
                                                                 a-fn# (find-kw-fn ~this-ns clj-kw-name#)]
                                                             (:doc (meta a-fn#))))
                              :stop_remote_server (fn []
-                                                   (.stop @*server*))
-                             :hello (fn []
-                                      ["foo" "bar" "wowza_sauce"])}))
+                                                   (.stop @*server*))}))
        (defn ~'server-start!
          ([] (~'server-start! ~'app-handler* {:port 8270, :join? false}))
          ([hndlr# opts#]
