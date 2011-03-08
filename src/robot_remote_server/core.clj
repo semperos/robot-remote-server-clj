@@ -26,44 +26,59 @@
 
 ;; WARNING: Less-than-functional code follows
 
+(defn get-keyword-arguments*
+  [a-ns kw-name]
+  (let [clj-kw-name (clojurify-name kw-name)
+        a-fn (find-kw-fn a-ns clj-kw-name)]
+    (vec (map str (last (:arglists (meta a-fn)))))))
+
+(defn get-keyword-documentation*
+  [a-ns kw-name]
+  (let [clj-kw-name (clojurify-name kw-name)
+        a-fn (find-kw-fn a-ns clj-kw-name)]
+    (:doc (meta a-fn))))
+
+(defn get-keyword-names*
+  [a-ns]
+  (vec
+   (map #(str/replace % "-" "_")
+        (remove #(re-find #"(\*|!)" %)
+                (map str
+                     (map first (ns-publics a-ns)))))))
+(defn run-keyword*
+  [a-ns kw-name args]
+  (let [clj-kw-name (clojurify-name kw-name)
+        a-fn (find-kw-fn a-ns clj-kw-name)
+        output (with-out-str (try
+                                (apply a-fn args)
+                                (catch Exception e
+                                  (do
+                                    (reset! *result* {:status "FAIL", :return "", :output "",
+                                                      :error (with-out-str (prn e)), :traceback (with-out-str (.printStackTrace e))})
+                                    @*result*))))]
+    (swap! *result* assoc :output output :return output)
+    @*result*))
+
 (defmacro init-handler
   "Create handler for XML-RPC server. Justification: delayed evaluation of *ns*"
   []
   (let [this-ns *ns*]
     `(->
       (xml-rpc/end-point
-          {:get_keyword_names (fn []
-                                (vec
-                                 (map #(str/replace % "-" "_")
-                                      (remove #(re-find #"(\*|!)" %)
-                                              (map str
-                                                   (map first (ns-publics ~this-ns)))))))
-           :run_keyword (fn
-                          [kw-name# args#]
-                          (let [clj-kw-name# (clojurify-name kw-name#)
-                                a-fn# (find-kw-fn ~this-ns clj-kw-name#)
-                                output# (with-out-str (try
-                                                        (apply a-fn# args#)
-                                                        (catch Exception e#
-                                                          (do
-                                                            (reset! *result* {:status "FAIL", :return "", :output "",
-                                                                              :error (with-out-str (prn e#)), :traceback (with-out-str (.printStackTrace e#))})
-                                                            @*result*))))]
-                            (swap! *result* assoc :output output# :return output#)
-                            @*result*))
-           :get_keyword_arguments (fn
-                                    [kw-name#]
-                                    (let [clj-kw-name# (clojurify-name kw-name#)
-                                          a-fn# (find-kw-fn ~this-ns clj-kw-name#)]
-                                      (vec (map str (last (:arglists (meta a-fn#)))))))
-           :get_keyword_documentation (fn
-                                        [kw-name#]
-                                        (let [clj-kw-name# (clojurify-name kw-name#)
-                                              a-fn# (find-kw-fn ~this-ns clj-kw-name#)]
-                                          (:doc (meta a-fn#))))
-           :stop_remote_server (fn []
-                                 (.stop @*server*))})
-         wrap-rpc)))
+       {:get_keyword_arguments       (fn
+                                       [kw-name#]
+                                       (get-keyword-arguments* ~this-ns kw-name#))
+        :get_keyword_documentation   (fn
+                                       [kw-name#]
+                                       (get-keyword-documentation* ~this-ns kw-name#))
+        :get_keyword_names           (fn []
+                                       (get-keyword-names* ~this-ns))
+        :run_keyword                 (fn
+                                       [kw-name# args#]
+                                       (run-keyword* ~this-ns kw-name# args#))        
+        :stop_remote_server          (fn []
+                                       (.stop @*server*))})
+      wrap-rpc)))
 
 (defn server-start!
   ([hndlr] (server-start! hndlr {:port 8270, :join? false}))
