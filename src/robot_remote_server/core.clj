@@ -1,20 +1,30 @@
 (ns robot-remote-server.core
-  (:require [necessary-evil.core :as xml-rpc])
+  (:require [necessary-evil.core :as xml-rpc]
+            [clojure.string :as str])
   (:import org.mortbay.jetty.Server)
   (:use robot-remote-server.keyword
         ring.adapter.jetty))
 
 (def *result* (atom {:status "PASS", :return "", :output "", :error "", :traceback ""}))
-(def *server* (atom (Server.)))
+(def *server* (atom nil))
+(def rf-ns (atom 'robot-remote-server.keyword))
+
+;; WARNING: Less-than-functional code follows
 
 (defn find-kw-fn
   [ns-name fn-name]
   (ns-resolve (find-ns ns-name) (symbol fn-name)))
 
+(defn clojurify-name
+  "Make it nicer for Clojure developers to write keywords; replace underscores with dashes"
+  [s]
+  (str/replace s "_" "-"))
+
 (defn- run-keyword
   "Run a single keyword"
   [kw-name args]
-  (let [a-fn (find-kw-fn 'robot-remote-server.keyword kw-name)
+  (let [clj-kw-name (clojurify-name kw-name)
+        a-fn (find-kw-fn @rf-ns clj-kw-name)
         output (with-out-str (try
                                (apply a-fn args)
                                (catch Exception e
@@ -26,26 +36,29 @@
     @*result*))
 
 (defn- get-keyword-names
+  "Get all keywords defined in rf-ns namespace, and make the names RobotFramework-friendly"
   []
-  (vec (map str (map first (ns-publics 'robot-remote-server.keyword)))))
+  (vec (map #(str/replace % "-" "_") (map str (map first (ns-publics @rf-ns))))))
 
 (defn- get-keyword-arguments
   [kw-name]
-  (let [a-fn (find-kw-fn 'robot-remote-server.keyword kw-name)]
+  (let [clj-kw-name (clojurify-name kw-name)
+        a-fn (find-kw-fn @rf-ns clj-kw-name)]
     (vec (map str (last (:arglists (meta a-fn)))))))
 
 (defn- get-keyword-documentation
   [kw-name]
-  (let [a-fn (find-kw-fn 'robot-remote-server.keyword kw-name)]
+  (let [clj-kw-name (clojurify-name kw-name)
+        a-fn (find-kw-fn @rf-ns clj-kw-name)]
     (:doc (meta a-fn))))
 
 (declare app-handler)
-(defn server-start
-  ([] (start-server app-handler {:port 8270, :join? false}))
+(defn server-start!
+  ([] (server-start! app-handler {:port 8270, :join? false}))
   ([hndlr opts]
      (reset! *server* (run-jetty hndlr opts))))
 
-(defn server-stop
+(defn server-stop!
   []
   (.stop @*server*))
 
@@ -54,7 +67,7 @@
                    :get_keyword_names get-keyword-names
                    :get_keyword_arguments get-keyword-arguments
                    :get_keyword_documentation get-keyword-documentation
-                   :stop_remote_server stop-server}))
+                   :stop_remote_server server-stop!}))
 
 (comment
   
