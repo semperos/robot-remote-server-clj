@@ -23,9 +23,7 @@
   (fn [req]
     (if (= "/RPC2" (:uri req))
       (handler req)
-      (do
-        (throw (Exception. (str "You do not have access to the address: " (:uri req))))
-        (str "You do not have access to the address: " (:uri req))))))
+      nil)))
 
 ;; WARNING: Less-than-functional code follows
 
