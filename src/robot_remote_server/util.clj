@@ -1,5 +1,7 @@
 (ns robot-remote-server.util)
 
+;;; TODO: Extend ResponseElements protocol to deal with nil
+
 (comment
   
   (defn- handle-return-val
