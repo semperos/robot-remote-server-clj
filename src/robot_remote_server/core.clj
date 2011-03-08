@@ -21,9 +21,8 @@
   "Ring middleware to limit server's response to the particular path that RobotFramework petitions"
   [handler]
   (fn [req]
-    (if (= "/RPC2" (:uri req))
-      (handler req)
-      nil)))
+    (when (= "/RPC2" (:uri req))
+      (handler req))))
 
 ;; WARNING: Less-than-functional code follows
 
