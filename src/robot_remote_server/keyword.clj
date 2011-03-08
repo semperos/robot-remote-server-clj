@@ -1,4 +1,5 @@
 (ns robot-remote-server.keyword
+  (:use robot-remote-server.core)
   (:import javax.swing.JOptionPane))
 
 (defn my-keyword
@@ -12,3 +13,8 @@
   (JOptionPane/showMessageDialog
     nil "Hello, Clojure World!" "Greeting"
     JOptionPane/INFORMATION_MESSAGE))
+
+(defn -main
+  []
+  (do (use 'robot-remote-server.core)
+      (server-start! (init-handler))))
