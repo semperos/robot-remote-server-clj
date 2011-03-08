@@ -65,16 +65,13 @@
   (let [this-ns *ns*]
     `(->
       (xml-rpc/end-point
-       {:get_keyword_arguments       (fn
-                                       [kw-name#]
+       {:get_keyword_arguments       (fn [kw-name#]
                                        (get-keyword-arguments* ~this-ns kw-name#))
-        :get_keyword_documentation   (fn
-                                       [kw-name#]
+        :get_keyword_documentation   (fn [kw-name#]
                                        (get-keyword-documentation* ~this-ns kw-name#))
         :get_keyword_names           (fn []
                                        (get-keyword-names* ~this-ns))
-        :run_keyword                 (fn
-                                       [kw-name# args#]
+        :run_keyword                 (fn [kw-name# args#]
                                        (run-keyword* ~this-ns kw-name# args#))        
         :stop_remote_server          (fn []
                                        (.stop @*server*))})
