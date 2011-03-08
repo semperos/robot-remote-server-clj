@@ -40,12 +40,12 @@
     (:doc (meta a-fn))))
 
 (declare app-handler)
-(defn start-server
+(defn server-start
   ([] (start-server app-handler {:port 8270, :join? false}))
   ([hndlr opts]
      (reset! *server* (run-jetty hndlr opts))))
 
-(defn stop-server
+(defn server-stop
   []
   (.stop @*server*))
 
