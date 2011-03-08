@@ -36,4 +36,4 @@ Distributed under the Eclipse Public License, the same as Clojure.
 
 [ne]: https://github.com/brehaut/necessary-evil
 [rf-dl]: http://code.google.com/p/robotframework/downloads/list
-[rf-java-integrations-docs]: http://code.google.com/p/robotframework/wiki/JavaIntegration
+[rf-java-integration-docs]: http://code.google.com/p/robotframework/wiki/JavaIntegration
