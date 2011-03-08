@@ -1,12 +1,12 @@
 (ns robot-remote-server.keyword
   (:import javax.swing.JOptionPane))
 
-(defn my_keyword
+(defn my-keyword
   "Documentation for myKeyword"
   [arg1 arg2]
   (println (str "My first keyword! Arg1: " arg1 ", Arg2: " arg2)))
 
-(defn open_dialog
+(defn open-dialog
   "Open a JOptionPane, just testing things"
   []
   (JOptionPane/showMessageDialog
