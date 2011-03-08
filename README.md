@@ -9,14 +9,13 @@ This is a remote server implementation written in Clojure, to be used with the R
 In your Clojure code, you need the following:
 
     (use 'robot-remote-server.core)
-    (reset! rf-ns 'your-keyword-namespace)
-    (server-start!)
+    (server-start! (init-handler))
 
-The atom `rf-ns` should be set to the namespace containing your RobotFramework keywords. By default it's set to an example namespace `robot-remote-server.keyword` with a couple of keywords already defined.
+This should be done inside the namespace that contains all your RobotFramework keywords; the `init-handler` macro generates a Ring handler that uses the current namespace to find RobotFramework keywords. Be not afraid to spread you namespace over multiple files using `(in-ns 'name-of-namescape)` and `(load file_name)` to make your keyword code more manageable.
 
 You can start and stop the XML-RPC remote server by using the `(server-start!)` and `(server-stop!)` functions, or by calling `:stop_remote_server` directly via RPC (refer to [brehaut's necessary-evil project][ne] for help with XML-RPC in Clojure).
 
-Keywords can be word-separated using dashes or underscores, e.g. "open-dialog" and "open_dialog" are the same thing. Avoid naming conflicts and stick to one method (dashes are more conventinal for Clojure/Lisp; underscores are supported here for consistency with existing RobotFramework keyword libraries in other languages).
+Keywords can be word-separated using dashes or underscores, e.g. a RobotFramework keyword "Open Dialog" can be implemented as either "open-dialog" and "open_dialog". Avoid naming conflicts and stick to one method (dashes are more conventinal for Clojure/Lisp; underscores are supported here for consistency with existing RobotFramework keyword libraries in other languages).
 
 ### Running RobotFramework Tests
 
