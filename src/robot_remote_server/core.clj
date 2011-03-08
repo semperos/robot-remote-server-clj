@@ -7,7 +7,6 @@
 
 (def *result* (atom {:status "PASS", :return "", :output "", :error "", :traceback ""}))
 (def *server* (atom nil))
-(def server-fns ["get-keyword-names" "app-handler" "server-start!" "server-stop!" "run-keyword" "get-keyword-arguments" "get-keyword-documentation" "find-kw-fn" "clojurify-name"])
 
 (defn find-kw-fn
   [this-ns fn-name]
