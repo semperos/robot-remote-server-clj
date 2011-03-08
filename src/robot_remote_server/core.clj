@@ -1,9 +1,11 @@
 (ns robot-remote-server.core
   (:require [necessary-evil.core :as xml-rpc])
+  (:import org.mortbay.jetty.Server)
   (:use robot-remote-server.keyword
         ring.adapter.jetty))
 
 (def *result* (atom {:status "PASS", :return "", :output "", :error "", :traceback ""}))
+(def *server* (atom (Server.)))
 
 (defn find-kw-fn
   [ns-name fn-name]
@@ -49,27 +51,34 @@
 
 (defn- get-keyword-names
   []
-  (vec (map #(.toString %) (map first (ns-publics 'robot-remote-server.keyword)))))
+  (vec (map str (map first (ns-publics 'robot-remote-server.keyword)))))
 
 (defn- get-keyword-arguments
   [kw-name]
   (let [a-fn (find-kw-fn 'robot-remote-server.keyword kw-name)]
-    (vec (map #(.toString %) (last (:arglists (meta a-fn)))))))
+    (vec (map str (last (:arglists (meta a-fn)))))))
 
 (defn- get-keyword-documentation
   [kw-name]
   (let [a-fn (find-kw-fn 'robot-remote-server.keyword kw-name)]
     (:doc (meta a-fn))))
 
-(declare *server*)
-(def handler (xml-rpc/end-point
-    {:run_keyword run-keyword
-     :get_keyword_names get-keyword-names
-     :get_keyword_arguments get-keyword-arguments
-     :get_keyword_documentation get-keyword-documentation
-     :stop_remote_server (fn []
-                           (.stop *server*)
-                           (str "Server stopped"))}))
+(declare app-handler)
+(defn start-server
+  ([] (start-server app-handler {:port 8270, :join? false}))
+  ([hndlr opts]
+     (reset! *server* (run-jetty hndlr opts))))
 
-(defonce *server* (run-jetty #'handler {:port 8271 :join? false}))
+(defn stop-server
+  []
+  (.stop @*server*))
+
+(def app-handler (xml-rpc/end-point
+                  {:run_keyword run-keyword
+                   :get_keyword_names get-keyword-names
+                   :get_keyword_arguments get-keyword-arguments
+                   :get_keyword_documentation get-keyword-documentation
+                   :stop_remote_server stop-server}))
+
+;;(defonce *server* (run-jetty #'handler {:port 8271 :join? false}))
 ;;(doto (Thread. #(run-jetty #'handler {:port 8271})) .start)
