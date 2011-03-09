@@ -51,7 +51,7 @@ Thanks to [Mark McGranaghan][mmcgrana-github] for his library [ring][ring-github
 
 Thanks to [Andrew Brehaut][brehaut-site] for his library [necessary-evil][ne] and his help over IRC, which has made writing this XML-RPC server extremely straightforward.
 
-Thanks to [Michael Fogus][fogus-github] for his library [marginalia][marg-github], which has been used to generate the beautifully-rendered source documentation available [here][rrs-marg].
+Thanks to [Michael Fogus][fogus-site] for his library [marginalia][marg-github], which has been used to generate the beautifully-rendered source documentation available [here][rrs-marg].
 
 ## License
 
