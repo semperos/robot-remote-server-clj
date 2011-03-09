@@ -4,18 +4,26 @@ This is a remote server implementation written in Clojure, to be used with the R
 
 ## Usage
 
+### Quick Start
+
+If you're using Leiningen and you just want to run the server using the small keyword library that comes with this code, run `lein run` at the command-line.
+
+Once you're ready to run your own keyword library, read on.
+
 ### Running the Remote Server
 
-If you're using Leiningen, you can simply do `lein run` at the command-line to start the RobotFramework remote server.
-
-Otherwise, in your Clojure code, you need the following:
+In the namespace you've used to write your RobotFramework keyword library, include the following:
 
     (use 'robot-remote-server.core)
-    (server-start! (init-handler))
+    (server-start! (init-handler false))
 
-This code should be placed inside the namespace that contains all your RobotFramework keywords; the `init-handler` macro generates a Ring handler that uses the current namespace to find RobotFramework keywords. Be not afraid to spread you namespace over multiple files using `(in-ns 'name-of-namescape)` and `(load file_name)` to make your keyword code more manageable. The function `(server-start!)` also accepts a map of options to pass to jetty, defaulting to `{:port 8270, :join false?}`.
+This code should be placed inside the namespace that contains all your RobotFramework keywords; the `init-handler` macro generates a Ring handler that uses the current namespace to find RobotFramework keywords. Be not afraid to spread you namespace over multiple files using `(in-ns 'name-of-namescape)` and `(load file_name)` to make your keyword codebase more manageable. The function `(server-start!)` accepts a second argument as a map of options to pass to jetty, defaulting to `{:port 8270, :join false?}`. To stop the server, use the `(server-stop!)` function.
 
-You can start and stop the XML-RPC remote server by using the `(server-start!)` and `(server-stop!)` functions, or by calling `stop_remote_server` directly via RPC (refer to [brehaut's necessary-evil project][ne] for help with XML-RPC in Clojure).
+By default, this remote server does not implement the `stop_remote_server` command as suggested by the RobotFramework spec. You can enable it by starting the server as follows:
+
+    (server-start! (init-handler true))
+
+You can then stop the server simply by calling the `stop_remote_server` command over RPC, in addition to using the `(server-stop!)` function. Refer to [brehaut's necessary-evil project][ne] for help using XML-RPC in Clojure.
 
 ### Writing RobotFramework Keywords in Clojure
 
@@ -37,6 +45,14 @@ After updating your test scripts with that setting, place the standalone RobotFr
 
 There are a number of options you can pass to the jar; for more details, see the [RobotFramework documentation][rf-java-integration-docs] on the subject. For a bare-bones example of a RobotFramework test, see the file `resources/test.txt` in this code base.
 
+## Acknowledgements
+
+Thanks to [Mark McGranaghan][mmcgrana-github] for his library [ring][ring-github], which makes defining the application handler and running it with Jetty a simple affair.
+
+Thanks to [Andrew Brehaut][brehaut-site] for his library [necessary-evil][ne] and his help over IRC, which has made writing this XML-RPC server extremely straightforward.
+
+Thanks to [Michael Fogus][fogus-github] for his library [marginalia][marg-github], which has been used to generate the beautifully-rendered source documentation available [here][rrs-marg].
+
 ## License
 
 Copyright (C) 2010 FIXME
@@ -46,3 +62,9 @@ Distributed under the Eclipse Public License, the same as Clojure.
 [ne]: https://github.com/brehaut/necessary-evil
 [rf-dl]: http://code.google.com/p/robotframework/downloads/list
 [rf-java-integration-docs]: http://code.google.com/p/robotframework/wiki/JavaIntegration
+[mmcgrana-github]: https://github.com/mmcgrana
+[ring-github]: https://github.com/mmcgrana/ring
+[brehaut-site]: http://brehaut.net/
+[fogus-site]: http://fogus.me/
+[marg-github]: https://github.com/fogus/marginalia
+[rrs-marg]: http://semperos.github.com/robot-remote-server-clj/uberdoc.html
