@@ -43,8 +43,6 @@
     (when (= "/RPC2" (:uri req))
       (handler req))))
 
-;; WARNING: Less-than-functional code follows
-
 (defn get-keyword-arguments*
   "Get arguments for a given RF keyword function identified by the string `kw-name` and located in the `a-ns` namespace"
   [a-ns kw-name]
@@ -70,22 +68,23 @@
 (defn run-keyword*
   "Given a RF-formatted string representation of a Clojure function `kw-name` in the `a-ns` namespace called with `args` as a vector, evaluate the function"
   [a-ns kw-name args]
-  (let [result (atom {:status "PASS", ; RF expects this map
-                      :return "",
-                      :output "",
-                      :error "",
-                      :traceback ""})
+  (let [result {:status "PASS", ; RF expects this map
+                :return "",
+                :output "",
+                :error "",
+                :traceback ""}
         clj-kw-name (clojurify-name kw-name) ; translate RF keyword to Clojure fn
         a-fn (find-kw-fn a-ns clj-kw-name)
         output (with-out-str (try
                                 (apply a-fn args)
                                 (catch Exception e
-                                  (do
-                                    (reset! result {:status "FAIL", :return "", :output "",
-                                                      :error (with-out-str (prn e)), :traceback (with-out-str (.printStackTrace e))})
-                                    @result))))]
-    (swap! result assoc :output output :return output)
-    @result))
+                                  (assoc result
+                                    :status "FAIL"
+                                    :error (with-out-str (prn e))
+                                    :traceback (with-out-str (.printStackTrace e))))))]
+    (assoc result :output output :return output)))
+
+;; WARNING: Less-than-functional code follows
 
 (defmacro init-handler
   "Create handler for XML-RPC server. Set expose-stop to false to prevent exposing the `stop_remote_server` RPC command. Justification for using macro: delayed evaluation of *ns*"
