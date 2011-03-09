@@ -17,4 +17,4 @@
 (defn -main
   []
   (do (use 'robot-remote-server.core)
-      (server-start! (init-handler))))
+      (server-start! (init-handler false))))
