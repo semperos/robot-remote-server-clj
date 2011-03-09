@@ -24,7 +24,7 @@
   (:use [robot-remote-server keyword]
         ring.adapter.jetty))
 
-(def *robot-remote-server* (atom nil))
+(defonce *robot-remote-server* (atom nil))
 
 (defn find-kw-fn
   "Given a namespace and a fn-name as string, return the function in that namespace by that name"
@@ -84,7 +84,11 @@
                                     :traceback (with-out-str (.printStackTrace e))))))]
     (assoc result :output output :return output)))
 
-;; WARNING: Less-than-functional code follows
+;;; WARNING: Less-than-functional code follows
+;;;
+;;; Use of *robot-remote-server* inside the `init-handler` macro and in the two
+;;; functions that follow. Done so that XML-RPC server can offer
+;;; stop_remote_server command if desired.
 
 (defmacro init-handler
   "Create handler for XML-RPC server. Set expose-stop to false to prevent exposing the `stop_remote_server` RPC command. Justification for using macro: delayed evaluation of *ns*"
@@ -119,7 +123,10 @@
 (defn server-start!
   "Given a Ring handler `hndlr`, start a Jetty server"
   ([hndlr] (server-start! hndlr {:port 8270, :join? false}))
-  ([hndlr opts] (reset! *robot-remote-server* (run-jetty hndlr opts))))
+  ([hndlr opts]
+     (when (and (not (nil? @*robot-remote-server*)) (.isRunning @*robot-remote-server*))
+       (.stop @*robot-remote-server*))
+     (reset! *robot-remote-server* (run-jetty hndlr opts))))
 
 (defn server-stop!
   "Stop the global Jetty server instance"
