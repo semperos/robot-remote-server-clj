@@ -87,11 +87,11 @@
 ;;; WARNING: Less-than-functional code follows
 ;;;
 ;;; Use of `*robot-remote-server*` inside the `init-handler` macro and in the two
-;;; functions that follow. Done so that XML-RPC server can offer the
+;;; functions that follow. This has been done so that the XML-RPC server can offer the
 ;;; `stop_remote_server` command if desired.
 
 (defmacro init-handler
-  "Create handler for XML-RPC server. Set expose-stop to false to prevent exposing the `stop_remote_server` RPC command. Justification for using macro: delayed evaluation of *ns*"
+  "Create handler for XML-RPC server. Set `expose-stop` to `false` to prevent exposing the `stop_remote_server` RPC command. Justification for using macro: delayed evaluation of `*ns*`"
   [expose-stop]
   (let [this-ns *ns*]
     (if (true? expose-stop)
