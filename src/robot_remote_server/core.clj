@@ -1,17 +1,18 @@
 ;;; ## RobotFramework XML-RPC Remote Server in Clojure
 ;;;
-;;; This XML-RPC server is designed to be used with RobotFramework (RF), to allow developers
-;;; to write RF keywords in Clojure.
+;;; This XML-RPC server is designed to be used with RobotFramework (RF), to
+;;; allow developers to write RF keywords in Clojure.
 ;;;
-;;; If you use Leiningen, just run `lein run` to use the example keyword library included
-;;; in the `robot-remote-server.keyword` namespace.
+;;; If you use Leiningen, just run `lein run` to use the example keyword
+;;; library included in the `robot-remote-server.keyword` namespace.
 ;;;
-;;; Otherwise, `(:use)` the `robot-remote-server.core` namespace in your own namespace
-;;; containing RF keywords and add `(server-start! (init-handler))` to start the
-;;; remote server.
+;;; Otherwise, `(:use)` the `robot-remote-server.core` namespace in your own
+;;; namespace containing RF keywords and add `(server-start! (init-handler))`
+;;; to start the remote server.
 ;;;
-;;; You can pass a map of options to `(server-start!)` like you would to `(run-jetty)`.
-;;; To stop the server, use `(server-stop!)` or send `:stop_remote_server` via RPC.
+;;; You can pass a map of options to `(server-start!)` like you would to
+;;; `(run-jetty)`. To stop the server, use `(server-stop!)` or send
+;;; `:stop_remote_server` via RPC.
 ;;;
 ;;; Because RF sends requests to the /RPC2 path, that has been enforced for this
 ;;; server using the `wrap-rpc` middleware defined in this namespace.
@@ -23,7 +24,6 @@
   (:use [robot-remote-server keyword]
         ring.adapter.jetty))
 
-(def *result* (atom {:status "PASS", :return "", :output "", :error "", :traceback ""}))
 (def *server* (atom nil))
 
 (defn find-kw-fn
@@ -70,17 +70,22 @@
 (defn run-keyword*
   "Given a RF-formatted string representation of a Clojure function `kw-name` in the `a-ns` namespace called with `args` as a vector, evaluate the function"
   [a-ns kw-name args]
-  (let [clj-kw-name (clojurify-name kw-name)
+  (let [result (atom {:status "PASS",
+                      :return "",
+                      :output "",
+                      :error "",
+                      :traceback ""})
+        clj-kw-name (clojurify-name kw-name)
         a-fn (find-kw-fn a-ns clj-kw-name)
         output (with-out-str (try
                                 (apply a-fn args)
                                 (catch Exception e
                                   (do
-                                    (reset! *result* {:status "FAIL", :return "", :output "",
+                                    (reset! result {:status "FAIL", :return "", :output "",
                                                       :error (with-out-str (prn e)), :traceback (with-out-str (.printStackTrace e))})
-                                    @*result*))))]
-    (swap! *result* assoc :output output :return output)
-    @*result*))
+                                    @result))))]
+    (swap! result assoc :output output :return output)
+    @result))
 
 (defmacro init-handler
   "Create handler for XML-RPC server. Justification: delayed evaluation of *ns*"
