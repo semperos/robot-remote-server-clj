@@ -2526,10 +2526,131 @@ $(document).ready(function() {
     ul.css('margin-top', '0px')
 
 })
-</script><title>com.semperos/robot-remote-server -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">com.semperos/robot-remote-server</h1><h2 class="project-version">0.1.0-SNAPSHOT</h2><br /><p>Implementation of a RobotFramework remote server in Clojure</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.2.0</td></tr><tr><td class="dep-name">ring/ring-jetty-adapter</td><td class="dotted"><hr /></td><td class="dep-version">0.3.6</td></tr><tr><td class="dep-name">necessary-evil</td><td class="dotted"><hr /></td><td class="dep-version">1.0.0-SNAPSHOT</td></tr></table></div><div class="dependencies"><h3>dev dependencies</h3><table><tr><td class="dep-name">swank-clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.3.0-SNAPSHOT</td></tr><tr><td class="dep-name">marginalia</td><td class="dotted"><hr /></td><td class="dep-version">0.5.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#com.semperos.robot-remote-server.keyword">com.semperos.robot-remote-server.keyword</a></li><li><a href="#com.semperos.robot-remote-server.util">com.semperos.robot-remote-server.util</a></li><li><a href="#com.semperos.robot-remote-server">com.semperos.robot-remote-server</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#com.semperos.robot-remote-server.keyword" name="com.semperos.robot-remote-server.keyword"><h1 class="project-name">com.semperos.robot-remote-server.keyword</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes" /><pre class="brush: clojure">(ns com.semperos.robot-remote-server.keyword
-  (:use com.semperos.robot-remote-server)
+</script><title>robot-remote-server -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">robot-remote-server</h1><h2 class="project-version">0.1.0-SNAPSHOT</h2><br /><p>Implementation of a RobotFramework remote server in Clojure</p>
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.2.0</td></tr><tr><td class="dep-name">ring/ring-jetty-adapter</td><td class="dotted"><hr /></td><td class="dep-version">0.3.6</td></tr><tr><td class="dep-name">necessary-evil</td><td class="dotted"><hr /></td><td class="dep-version">1.0.0-SNAPSHOT</td></tr></table></div><div class="dependencies"><h3>dev dependencies</h3><table><tr><td class="dep-name">swank-clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.3.0-SNAPSHOT</td></tr><tr><td class="dep-name">marginalia</td><td class="dotted"><hr /></td><td class="dep-version">0.5.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#robot-remote-server.core">robot-remote-server.core</a></li><li><a href="#robot-remote-server.keyword">robot-remote-server.keyword</a></li><li><a href="#robot-remote-server.util">robot-remote-server.util</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#robot-remote-server.core" name="robot-remote-server.core"><h1 class="project-name">robot-remote-server.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>RobotFramework XML-RPC Remote Server in Clojure</h2>
+
+<p>This XML-RPC server is designed to be used with RobotFramework (RF), to
+allow developers to write RF keywords in Clojure.</p>
+
+<p>If you use Leiningen, just run <code>lein run</code> to use the example keyword
+library included in the <code>robot-remote-server.keyword</code> namespace.</p>
+
+<p>Otherwise, <code>(:use)</code> the <code>robot-remote-server.core</code> namespace in your own
+namespace containing RF keywords and add <code>(server-start! (init-handler))</code>
+to start the remote server.</p>
+
+<p>You can pass a map of options to <code>(server-start!)</code> like you would to
+<code>(run-jetty)</code>. To stop the server, use <code>(server-stop!)</code> or send
+<code>:stop_remote_server</code> via RPC.</p>
+
+<p>Because RF sends requests to the /RPC2 path, that has been enforced for this
+server using the <code>wrap-rpc</code> middleware defined in this namespace.</p>
+</td><td class="codes" /><pre class="brush: clojure">(ns robot-remote-server.core
+  (:require [necessary-evil.core :as xml-rpc]
+            [clojure.string :as str])
+  (:import org.mortbay.jetty.Server)
+  (:use [robot-remote-server keyword]
+        ring.adapter.jetty))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defonce *robot-remote-server* (atom nil))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defn find-kw-fn
+  "Given a namespace and a fn-name as string, return the function in that namespace by that name"
+  [a-ns fn-name]
+  (ns-resolve a-ns (symbol fn-name)))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defn clojurify-name
+  "Make it nicer for Clojure developers to write keywords; replace underscores with dashes"
+  [s]
+  (str/replace s "_" "-"))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defn wrap-rpc
+  "Ring middleware to limit server's response to the particular path that RobotFramework petitions"
+  [handler]
+  (fn [req]
+    (when (= "/RPC2" (:uri req))
+      (handler req))))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defn get-keyword-arguments*
+  "Get arguments for a given RF keyword function identified by the string `kw-name` and located in the `a-ns` namespace"
+  [a-ns kw-name]
+  (let [clj-kw-name (clojurify-name kw-name)
+        a-fn (find-kw-fn a-ns clj-kw-name)]
+    (vec (map str (last (:arglists (meta a-fn)))))))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defn get-keyword-documentation*
+  "Get documentation string for a given RF keyword function identified by the string `kw-name` and located in the `a-ns` namespace"
+  [a-ns kw-name]
+  (let [clj-kw-name (clojurify-name kw-name)
+        a-fn (find-kw-fn a-ns clj-kw-name)]
+    (:doc (meta a-fn))))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defn get-keyword-names*
+  "Get a list of RF keyword functions located in the `a-ns` namespace"
+  [a-ns]
+  (vec
+   (map #(str/replace % "-" "_") ; RF expects underscores
+        (remove #(or (re-find #"(\*|!)" %) (re-find #"^-" %)) ; non-keyword functions
+                (map str
+                     (map first (ns-publics a-ns)))))))
+(defn run-keyword*
+  "Given a RF-formatted string representation of a Clojure function `kw-name` in the `a-ns` namespace called with `args` as a vector, evaluate the function"
+  [a-ns kw-name args]
+  (let [result {:status "PASS", ; RF expects this map
+                :return ,
+                :output ,
+                :error ,
+                :traceback }
+        clj-kw-name (clojurify-name kw-name) ; translate RF keyword to Clojure fn
+        a-fn (find-kw-fn a-ns clj-kw-name)
+        output (with-out-str (try
+                                (apply a-fn args)
+                                (catch Exception e
+                                  (assoc result
+                                    :status "FAIL"
+                                    :error (with-out-str (prn e))
+                                    :traceback (with-out-str (.printStackTrace e))))))]
+    (assoc result :output output :return output)))</pre></tr><tr><td class="docs"><p>WARNING: Less-than-functional code follows</p>
+
+<p>Use of <code>*robot-remote-server*</code> inside the <code>init-handler</code> macro and in the two
+functions that follow. This has been done so that the XML-RPC server can offer the
+<code>stop_remote_server</code> command if desired.</p>
+</td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defmacro init-handler
+  "Create handler for XML-RPC server. Set `expose-stop` to `false` to prevent exposing the `stop_remote_server` RPC command. Justification for using macro: delayed evaluation of `*ns*`"
+  [expose-stop]
+  (let [this-ns *ns*]
+    (if (true? expose-stop)
+      `(->
+        (xml-rpc/end-point
+         {:get_keyword_arguments       (fn [kw-name#]
+                                         (get-keyword-arguments* ~this-ns kw-name#))
+          :get_keyword_documentation   (fn [kw-name#]
+                                         (get-keyword-documentation* ~this-ns kw-name#))
+          :get_keyword_names           (fn []
+                                         (get-keyword-names* ~this-ns))
+          :run_keyword                 (fn [kw-name# args#]
+                                         (run-keyword* ~this-ns kw-name# args#))
+          :stop_remote_server          (fn []
+                                         (.stop @*robot-remote-server*))})
+        wrap-rpc)
+      `(->
+        (xml-rpc/end-point
+         {:get_keyword_arguments       (fn [kw-name#]
+                                         (get-keyword-arguments* ~this-ns kw-name#))
+          :get_keyword_documentation   (fn [kw-name#]
+                                         (get-keyword-documentation* ~this-ns kw-name#))
+          :get_keyword_names           (fn []
+                                         (get-keyword-names* ~this-ns))
+          :run_keyword                 (fn [kw-name# args#]
+                                         (run-keyword* ~this-ns kw-name# args#))})
+        wrap-rpc))))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defn server-start!
+  "Given a Ring handler `hndlr`, start a Jetty server"
+  ([hndlr] (server-start! hndlr {:port 8270, :join? false}))
+  ([hndlr opts]
+     (when (and (not (nil? @*robot-remote-server*)) (.isRunning @*robot-remote-server*))
+       (.stop @*robot-remote-server*))
+     (reset! *robot-remote-server* (run-jetty hndlr opts))))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defn server-stop!
+  "Stop the global Jetty server instance"
+  []
+  (.stop @*robot-remote-server*))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#robot-remote-server.keyword" name="robot-remote-server.keyword"><h1 class="project-name">robot-remote-server.keyword</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(ns robot-remote-server.keyword
+  (:use robot-remote-server.core)
   (:import javax.swing.JOptionPane))</pre></tr><tr><td class="docs"><p>Documentation for myKeyword</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn my-keyword
   [arg1 arg2]
@@ -2541,9 +2662,9 @@ $(document).ready(function() {
     JOptionPane/INFORMATION_MESSAGE))</pre></tr><tr><td class="docs">
 </td><td class="codes" /><pre class="brush: clojure">(defn -main
   []
-  (do (use 'com.semperos.robot-remote-server)
-      (server-start! (init-handler false))))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#com.semperos.robot-remote-server.util" name="com.semperos.robot-remote-server.util"><h1 class="project-name">com.semperos.robot-remote-server.util</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes" /><pre class="brush: clojure">(ns com.semperos.robot-remote-server.util)</pre></tr><tr><td class="docs"><p>TODO: Extend ResponseElements protocol to deal with nil</p>
+  (do (use 'robot-remote-server.core)
+      (server-start! (init-handler false))))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#robot-remote-server.util" name="robot-remote-server.util"><h1 class="project-name">robot-remote-server.util</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(ns robot-remote-server.util)</pre></tr><tr><td class="docs"><p>TODO: Extend ResponseElements protocol to deal with nil</p>
 </td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes" /><pre class="brush: clojure">(comment
   
@@ -2573,117 +2694,5 @@ $(document).ready(function() {
 
   (defonce a-server (run-jetty #'app-handler {:port 8271 :join? false}))
   (doto (Thread. #(run-jetty #'app-handler {:port 8271})) .start)
-)</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#com.semperos.robot-remote-server" name="com.semperos.robot-remote-server"><h1 class="project-name">com.semperos.robot-remote-server</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>RobotFramework XML-RPC Remote Server in Clojure</h2>
-
-<p>This XML-RPC server is designed to be used with RobotFramework (RF), to
-allow developers to write RF keywords in Clojure.</p>
-
-<p>If you use Leiningen, just run <code>lein run</code> to use the example keyword
-library included in the <code>robot-remote-server.keyword</code> namespace.</p>
-
-<p>Otherwise, <code>(:use)</code> the <code>robot-remote-server.core</code> namespace in your own
-namespace containing RF keywords and add <code>(server-start! (init-handler))</code>
-to start the remote server.</p>
-
-<p>You can pass a map of options to <code>(server-start!)</code> like you would to
-<code>(run-jetty)</code>. To stop the server, use <code>(server-stop!)</code> or send
-<code>:stop_remote_server</code> via RPC.</p>
-
-<p>Because RF sends requests to the /RPC2 path, that has been enforced for this
-server using the <code>wrap-rpc</code> middleware defined in this namespace.</p>
-</td><td class="codes" /><pre class="brush: clojure">(ns com.semperos.robot-remote-server
-  (:require [necessary-evil.core :as xml-rpc]
-            [clojure.string :as str])
-  (:import org.mortbay.jetty.Server)
-  (:use ring.adapter.jetty))</pre></tr><tr><td class="docs">
-</td><td class="codes" /><pre class="brush: clojure">(defonce *robot-remote-server* (atom nil))</pre></tr><tr><td class="docs"><p>Given a namespace and a fn-name as string, return the function in that namespace by that name</p>
-</td><td class="codes" /><pre class="brush: clojure">(defn find-kw-fn
-  [a-ns fn-name]
-  (ns-resolve a-ns (symbol fn-name)))</pre></tr><tr><td class="docs"><p>Make it nicer for Clojure developers to write keywords; replace underscores with dashes</p>
-</td><td class="codes" /><pre class="brush: clojure">(defn clojurify-name
-  [s]
-  (str/replace s "_" "-"))</pre></tr><tr><td class="docs"><p>Ring middleware to limit server's response to the particular path that RobotFramework petitions</p>
-</td><td class="codes" /><pre class="brush: clojure">(defn wrap-rpc
-  [handler]
-  (fn [req]
-    (when (= "/RPC2" (:uri req))
-      (handler req))))</pre></tr><tr><td class="docs"><p>Get arguments for a given RF keyword function identified by the string <code>kw-name</code> and located in the <code>a-ns</code> namespace</p>
-</td><td class="codes" /><pre class="brush: clojure">(defn get-keyword-arguments*
-  [a-ns kw-name]
-  (let [clj-kw-name (clojurify-name kw-name)
-        a-fn (find-kw-fn a-ns clj-kw-name)]
-    (vec (map str (last (:arglists (meta a-fn)))))))</pre></tr><tr><td class="docs"><p>Get documentation string for a given RF keyword function identified by the string <code>kw-name</code> and located in the <code>a-ns</code> namespace</p>
-</td><td class="codes" /><pre class="brush: clojure">(defn get-keyword-documentation*
-  [a-ns kw-name]
-  (let [clj-kw-name (clojurify-name kw-name)
-        a-fn (find-kw-fn a-ns clj-kw-name)]
-    (:doc (meta a-fn))))</pre></tr><tr><td class="docs"><p>Get a list of RF keyword functions located in the <code>a-ns</code> namespace</p>
-
-<p>Given a RF-formatted string representation of a Clojure function <code>kw-name</code> in the <code>a-ns</code> namespace called with <code>args</code> as a vector, evaluate the function</p>
-</td><td class="codes" /><pre class="brush: clojure">(defn get-keyword-names*
-  [a-ns]
-  (vec
-   (map #(str/replace % "-" "_") ; RF expects underscores
-        (remove #(or (re-find #"(\*|!)" %) (re-find #"^-" %)) ; non-keyword functions
-                (map str
-                     (map first (ns-publics a-ns)))))))
-(defn run-keyword*
-  [a-ns kw-name args]
-  (let [result {:status "PASS", ; RF expects this map
-                :return "",
-                :output "",
-                :error "",
-                :traceback ""}
-        clj-kw-name (clojurify-name kw-name) ; translate RF keyword to Clojure fn
-        a-fn (find-kw-fn a-ns clj-kw-name)
-        output (with-out-str (try
-                                (apply a-fn args)
-                                (catch Exception e
-                                  (assoc result
-                                    :status "FAIL"
-                                    :error (with-out-str (prn e))
-                                    :traceback (with-out-str (.printStackTrace e))))))]
-    (assoc result :output output :return output)))</pre></tr><tr><td class="docs"><p>WARNING: Less-than-functional code follows</p>
-
-<p>Use of <code>*robot-remote-server*</code> inside the <code>init-handler</code> macro and in the two
-functions that follow. This has been done so that the XML-RPC server can offer the
-<code>stop_remote_server</code> command if desired.</p>
-</td><td class="codes" /></tr><tr><td class="docs"><p>Create handler for XML-RPC server. Set <code>expose-stop</code> to <code>false</code> to prevent exposing the <code>stop_remote_server</code> RPC command. Justification for using macro: delayed evaluation of <code>*ns*</code></p>
-</td><td class="codes" /><pre class="brush: clojure">(defmacro init-handler
-  [expose-stop]
-  (let [this-ns *ns*]
-    (if (true? expose-stop)
-      `(->
-        (xml-rpc/end-point
-         {:get_keyword_arguments       (fn [kw-name#]
-                                         (get-keyword-arguments* ~this-ns kw-name#))
-          :get_keyword_documentation   (fn [kw-name#]
-                                         (get-keyword-documentation* ~this-ns kw-name#))
-          :get_keyword_names           (fn []
-                                         (get-keyword-names* ~this-ns))
-          :run_keyword                 (fn [kw-name# args#]
-                                         (run-keyword* ~this-ns kw-name# args#))
-          :stop_remote_server          (fn []
-                                         (.stop @*robot-remote-server*))})
-        wrap-rpc)
-      `(->
-        (xml-rpc/end-point
-         {:get_keyword_arguments       (fn [kw-name#]
-                                         (get-keyword-arguments* ~this-ns kw-name#))
-          :get_keyword_documentation   (fn [kw-name#]
-                                         (get-keyword-documentation* ~this-ns kw-name#))
-          :get_keyword_names           (fn []
-                                         (get-keyword-names* ~this-ns))
-          :run_keyword                 (fn [kw-name# args#]
-                                         (run-keyword* ~this-ns kw-name# args#))})
-        wrap-rpc))))</pre></tr><tr><td class="docs"><p>Given a Ring handler <code>hndlr</code>, start a Jetty server</p>
-</td><td class="codes" /><pre class="brush: clojure">(defn server-start!
-  ([hndlr] (server-start! hndlr {:port 8270, :join? false}))
-  ([hndlr opts]
-     (when (and (not (nil? @*robot-remote-server*)) (.isRunning @*robot-remote-server*))
-       (.stop @*robot-remote-server*))
-     (reset! *robot-remote-server* (run-jetty hndlr opts))))</pre></tr><tr><td class="docs"><p>Stop the global Jetty server instance</p>
-</td><td class="codes" /><pre class="brush: clojure">(defn server-stop!
-  []
-  (.stop @*robot-remote-server*))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/fogus/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_com.semperos.robot-remote-server.keyword">com.semperos.robot-remote-server.keyword</li><li class="floating-toc-li" id="floating-toc_com.semperos.robot-remote-server.util">com.semperos.robot-remote-server.util</li><li class="floating-toc-li" id="floating-toc_com.semperos.robot-remote-server">com.semperos.robot-remote-server</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+)</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/fogus/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_robot-remote-server.core">robot-remote-server.core</li><li class="floating-toc-li" id="floating-toc_robot-remote-server.keyword">robot-remote-server.keyword</li><li class="floating-toc-li" id="floating-toc_robot-remote-server.util">robot-remote-server.util</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
        SyntaxHighlighter.all()</script></body></html>
