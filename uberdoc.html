@@ -2551,35 +2551,31 @@ server using the <code>wrap-rpc</code> middleware defined in this namespace.</p>
   (:import org.mortbay.jetty.Server)
   (:use [robot-remote-server keyword]
         ring.adapter.jetty))</pre></tr><tr><td class="docs">
-</td><td class="codes" /><pre class="brush: clojure">(defonce *robot-remote-server* (atom nil))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defonce *robot-remote-server* (atom nil))</pre></tr><tr><td class="docs"><p>Given a namespace and a fn-name as string, return the function in that namespace by that name</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn find-kw-fn
-  "Given a namespace and a fn-name as string, return the function in that namespace by that name"
   [a-ns fn-name]
-  (ns-resolve a-ns (symbol fn-name)))</pre></tr><tr><td class="docs">
+  (ns-resolve a-ns (symbol fn-name)))</pre></tr><tr><td class="docs"><p>Make it nicer for Clojure developers to write keywords; replace underscores with dashes</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn clojurify-name
-  "Make it nicer for Clojure developers to write keywords; replace underscores with dashes"
   [s]
-  (str/replace s "_" "-"))</pre></tr><tr><td class="docs">
+  (str/replace s "_" "-"))</pre></tr><tr><td class="docs"><p>Ring middleware to limit server's response to the particular path that RobotFramework petitions</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn wrap-rpc
-  "Ring middleware to limit server's response to the particular path that RobotFramework petitions"
   [handler]
   (fn [req]
     (when (= "/RPC2" (:uri req))
-      (handler req))))</pre></tr><tr><td class="docs">
+      (handler req))))</pre></tr><tr><td class="docs"><p>Get arguments for a given RF keyword function identified by the string <code>kw-name</code> and located in the <code>a-ns</code> namespace</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn get-keyword-arguments*
-  "Get arguments for a given RF keyword function identified by the string `kw-name` and located in the `a-ns` namespace"
   [a-ns kw-name]
   (let [clj-kw-name (clojurify-name kw-name)
         a-fn (find-kw-fn a-ns clj-kw-name)]
-    (vec (map str (last (:arglists (meta a-fn)))))))</pre></tr><tr><td class="docs">
+    (vec (map str (last (:arglists (meta a-fn)))))))</pre></tr><tr><td class="docs"><p>Get documentation string for a given RF keyword function identified by the string <code>kw-name</code> and located in the <code>a-ns</code> namespace</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn get-keyword-documentation*
-  "Get documentation string for a given RF keyword function identified by the string `kw-name` and located in the `a-ns` namespace"
   [a-ns kw-name]
   (let [clj-kw-name (clojurify-name kw-name)
         a-fn (find-kw-fn a-ns clj-kw-name)]
-    (:doc (meta a-fn))))</pre></tr><tr><td class="docs">
+    (:doc (meta a-fn))))</pre></tr><tr><td class="docs"><p>Get a list of RF keyword functions located in the <code>a-ns</code> namespace</p>
+
+<p>Given a RF-formatted string representation of a Clojure function <code>kw-name</code> in the <code>a-ns</code> namespace called with <code>args</code> as a vector, evaluate the function</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn get-keyword-names*
-  "Get a list of RF keyword functions located in the `a-ns` namespace"
   [a-ns]
   (vec
    (map #(str/replace % "-" "_") ; RF expects underscores
@@ -2587,13 +2583,12 @@ server using the <code>wrap-rpc</code> middleware defined in this namespace.</p>
                 (map str
                      (map first (ns-publics a-ns)))))))
 (defn run-keyword*
-  "Given a RF-formatted string representation of a Clojure function `kw-name` in the `a-ns` namespace called with `args` as a vector, evaluate the function"
   [a-ns kw-name args]
   (let [result {:status "PASS", ; RF expects this map
-                :return ,
-                :output ,
-                :error ,
-                :traceback }
+                :return "",
+                :output "",
+                :error "",
+                :traceback ""}
         clj-kw-name (clojurify-name kw-name) ; translate RF keyword to Clojure fn
         a-fn (find-kw-fn a-ns clj-kw-name)
         output (with-out-str (try
@@ -2608,9 +2603,8 @@ server using the <code>wrap-rpc</code> middleware defined in this namespace.</p>
 <p>Use of <code>*robot-remote-server*</code> inside the <code>init-handler</code> macro and in the two
 functions that follow. This has been done so that the XML-RPC server can offer the
 <code>stop_remote_server</code> command if desired.</p>
-</td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes" /></tr><tr><td class="docs"><p>Create handler for XML-RPC server. Set <code>expose-stop</code> to <code>false</code> to prevent exposing the <code>stop_remote_server</code> RPC command. Justification for using macro: delayed evaluation of <code>*ns*</code></p>
 </td><td class="codes" /><pre class="brush: clojure">(defmacro init-handler
-  "Create handler for XML-RPC server. Set `expose-stop` to `false` to prevent exposing the `stop_remote_server` RPC command. Justification for using macro: delayed evaluation of `*ns*`"
   [expose-stop]
   (let [this-ns *ns*]
     (if (true? expose-stop)
@@ -2637,16 +2631,14 @@ functions that follow. This has been done so that the XML-RPC server can offer t
                                          (get-keyword-names* ~this-ns))
           :run_keyword                 (fn [kw-name# args#]
                                          (run-keyword* ~this-ns kw-name# args#))})
-        wrap-rpc))))</pre></tr><tr><td class="docs">
+        wrap-rpc))))</pre></tr><tr><td class="docs"><p>Given a Ring handler <code>hndlr</code>, start a Jetty server</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn server-start!
-  "Given a Ring handler `hndlr`, start a Jetty server"
   ([hndlr] (server-start! hndlr {:port 8270, :join? false}))
   ([hndlr opts]
      (when (and (not (nil? @*robot-remote-server*)) (.isRunning @*robot-remote-server*))
        (.stop @*robot-remote-server*))
-     (reset! *robot-remote-server* (run-jetty hndlr opts))))</pre></tr><tr><td class="docs">
+     (reset! *robot-remote-server* (run-jetty hndlr opts))))</pre></tr><tr><td class="docs"><p>Stop the global Jetty server instance</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn server-stop!
-  "Stop the global Jetty server instance"
   []
   (.stop @*robot-remote-server*))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#robot-remote-server.keyword" name="robot-remote-server.keyword"><h1 class="project-name">robot-remote-server.keyword</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes" /><pre class="brush: clojure">(ns robot-remote-server.keyword
