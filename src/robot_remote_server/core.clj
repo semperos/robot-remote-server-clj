@@ -1,22 +1,22 @@
-;;; ## RobotFramework XML-RPC Remote Server in Clojure
-;;;
-;;; This XML-RPC server is designed to be used with RobotFramework (RF), to
-;;; allow developers to write RF keywords in Clojure.
-;;;
-;;; If you use Leiningen, just run `lein run` to use the example keyword
-;;; library included in the `robot-remote-server.keyword` namespace.
-;;;
-;;; Otherwise, `(:use)` the `robot-remote-server.core` namespace in your own
-;;; namespace containing RF keywords and add `(server-start! (init-handler))`
-;;; to start the remote server.
-;;;
-;;; You can pass a map of options to `(server-start!)` like you would to
-;;; `(run-jetty)`. To stop the server, use `(server-stop!)` or send
-;;; `:stop_remote_server` via RPC.
-;;;
-;;; Because RF sends requests to the /RPC2 path, that has been enforced for this
-;;; server using the `wrap-rpc` middleware defined in this namespace.
-;;; 
+;; ## RobotFramework XML-RPC Remote Server in Clojure
+;;
+;; This XML-RPC server is designed to be used with RobotFramework (RF), to
+;; allow developers to write RF keywords in Clojure.
+;;
+;; If you use Leiningen, just run `lein run` to use the example keyword
+;; library included in the `robot-remote-server.keyword` namespace.
+;;
+;; Otherwise, `(:use)` the `robot-remote-server.core` namespace in your own
+;; namespace containing RF keywords and add `(server-start! (init-handler))`
+;; to start the remote server.
+;;
+;; You can pass a map of options to `(server-start!)` like you would to
+;; `(run-jetty)`. To stop the server, use `(server-stop!)` or send
+;; `:stop_remote_server` via RPC.
+;;
+;; Because RF sends requests to the /RPC2 path, that has been enforced for this
+;; server using the `wrap-rpc` middleware defined in this namespace.
+;; 
 (ns robot-remote-server.core
   (:require [necessary-evil.core :as xml-rpc]
             [clojure.string :as str])
@@ -84,11 +84,11 @@
                                     :traceback (with-out-str (.printStackTrace e))))))]
     (assoc result :output output :return output)))
 
-;;; WARNING: Less-than-functional code follows
-;;;
-;;; Use of `*robot-remote-server*` inside the `init-handler` macro and in the two
-;;; functions that follow. This has been done so that the XML-RPC server can offer the
-;;; `stop_remote_server` command if desired.
+;; WARNING: Less-than-functional code follows
+;;
+;; Use of `*robot-remote-server*` inside the `init-handler` macro and in the two
+;; functions that follow. This has been done so that the XML-RPC server can offer the
+;; `stop_remote_server` command if desired.
 
 (defmacro init-handler
   "Create handler for XML-RPC server. Set `expose-stop` to `false` to prevent exposing the `stop_remote_server` RPC command. Justification for using macro: delayed evaluation of `*ns*`"
