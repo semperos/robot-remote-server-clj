@@ -2526,8 +2526,54 @@ $(document).ready(function() {
     ul.css('margin-top', '0px')
 
 })
-</script><title>robot-remote-server -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">robot-remote-server</h1><h2 class="project-version">0.1.0-SNAPSHOT</h2><br /><p>Implementation of a RobotFramework remote server in Clojure</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.2.0</td></tr><tr><td class="dep-name">org.clojure/clojure-contrib</td><td class="dotted"><hr /></td><td class="dep-version">1.2.0</td></tr><tr><td class="dep-name">ring/ring-jetty-adapter</td><td class="dotted"><hr /></td><td class="dep-version">0.3.6</td></tr><tr><td class="dep-name">necessary-evil</td><td class="dotted"><hr /></td><td class="dep-version">1.0.0-SNAPSHOT</td></tr></table></div><div class="dependencies"><h3>dev dependencies</h3><table><tr><td class="dep-name">swank-clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.3.0-SNAPSHOT</td></tr><tr><td class="dep-name">marginalia</td><td class="dotted"><hr /></td><td class="dep-version">0.5.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#robot-remote-server.core">robot-remote-server.core</a></li><li><a href="#robot-remote-server.keyword">robot-remote-server.keyword</a></li><li><a href="#robot-remote-server.util">robot-remote-server.util</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#robot-remote-server.core" name="robot-remote-server.core"><h1 class="project-name">robot-remote-server.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>RobotFramework XML-RPC Remote Server in Clojure</h2>
+</script><title>com.semperos/robot-remote-server -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">com.semperos/robot-remote-server</h1><h2 class="project-version">0.1.0-SNAPSHOT</h2><br /><p>Implementation of a RobotFramework remote server in Clojure</p>
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.2.0</td></tr><tr><td class="dep-name">ring/ring-jetty-adapter</td><td class="dotted"><hr /></td><td class="dep-version">0.3.6</td></tr><tr><td class="dep-name">necessary-evil</td><td class="dotted"><hr /></td><td class="dep-version">1.0.0-SNAPSHOT</td></tr></table></div><div class="dependencies"><h3>dev dependencies</h3><table><tr><td class="dep-name">swank-clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.3.0-SNAPSHOT</td></tr><tr><td class="dep-name">marginalia</td><td class="dotted"><hr /></td><td class="dep-version">0.5.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#com.semperos.robot-remote-server.keyword">com.semperos.robot-remote-server.keyword</a></li><li><a href="#com.semperos.robot-remote-server.util">com.semperos.robot-remote-server.util</a></li><li><a href="#com.semperos.robot-remote-server">com.semperos.robot-remote-server</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#com.semperos.robot-remote-server.keyword" name="com.semperos.robot-remote-server.keyword"><h1 class="project-name">com.semperos.robot-remote-server.keyword</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(ns com.semperos.robot-remote-server.keyword
+  (:use com.semperos.robot-remote-server)
+  (:import javax.swing.JOptionPane))</pre></tr><tr><td class="docs"><p>Documentation for myKeyword</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn my-keyword
+  [arg1 arg2]
+  (println (str "My first keyword! Arg1: " arg1 ", Arg2: " arg2)))</pre></tr><tr><td class="docs"><p>Open a JOptionPane, just testing things</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn open-dialog
+  []
+  (JOptionPane/showMessageDialog
+    nil "Hello, Clojure World!" "Greeting"
+    JOptionPane/INFORMATION_MESSAGE))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defn -main
+  []
+  (do (use 'com.semperos.robot-remote-server)
+      (server-start! (init-handler false))))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#com.semperos.robot-remote-server.util" name="com.semperos.robot-remote-server.util"><h1 class="project-name">com.semperos.robot-remote-server.util</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(ns com.semperos.robot-remote-server.util)</pre></tr><tr><td class="docs"><p>TODO: Extend ResponseElements protocol to deal with nil</p>
+</td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(comment
+  
+  (defn- handle-return-val
+    "Convert everything to RobotFramework-acceptable types. See implementations in other languages for examples"
+    [ret]
+    (condp class ret
+      java.lang.String                           ret
+      java.util.concurrent.atomic.AtomicInteger  ret
+      java.util.concurrent.atomic.AtomicLong     ret
+      java.math.BigDecimal                       ret
+      java.math.BigInteger                       ret
+      java.lang.Byte                             ret
+      java.lang.Double                           ret
+      java.lang.Float                            ret
+      java.lang.Integer                          ret
+      java.lang.Long                             ret
+      java.lang.Short                            ret
+      clojure.lang.PersistentVector              (map handle-return-val ret)
+      clojure.lang.PersistentArrayMap            (into {}
+                                                       (for [[k v] ret]
+                                                         [(.toString k) (handle-return-val v)]))
+      clojure.lang.PersistentTreeMap             (into {}
+                                                       (for [[k v] ret]
+                                                         [(.toString k) (handle-return-val v)]))
+      :else ret))
+
+  (defonce a-server (run-jetty #'app-handler {:port 8271 :join? false}))
+  (doto (Thread. #(run-jetty #'app-handler {:port 8271})) .start)
+)</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#com.semperos.robot-remote-server" name="com.semperos.robot-remote-server"><h1 class="project-name">com.semperos.robot-remote-server</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>RobotFramework XML-RPC Remote Server in Clojure</h2>
 
 <p>This XML-RPC server is designed to be used with RobotFramework (RF), to
 allow developers to write RF keywords in Clojure.</p>
@@ -2545,12 +2591,11 @@ to start the remote server.</p>
 
 <p>Because RF sends requests to the /RPC2 path, that has been enforced for this
 server using the <code>wrap-rpc</code> middleware defined in this namespace.</p>
-</td><td class="codes" /><pre class="brush: clojure">(ns robot-remote-server.core
+</td><td class="codes" /><pre class="brush: clojure">(ns com.semperos.robot-remote-server
   (:require [necessary-evil.core :as xml-rpc]
             [clojure.string :as str])
   (:import org.mortbay.jetty.Server)
-  (:use [robot-remote-server keyword]
-        ring.adapter.jetty))</pre></tr><tr><td class="docs">
+  (:use ring.adapter.jetty))</pre></tr><tr><td class="docs">
 </td><td class="codes" /><pre class="brush: clojure">(defonce *robot-remote-server* (atom nil))</pre></tr><tr><td class="docs"><p>Given a namespace and a fn-name as string, return the function in that namespace by that name</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn find-kw-fn
   [a-ns fn-name]
@@ -2601,9 +2646,9 @@ server using the <code>wrap-rpc</code> middleware defined in this namespace.</p>
     (assoc result :output output :return output)))</pre></tr><tr><td class="docs"><p>WARNING: Less-than-functional code follows</p>
 
 <p>Use of <code>*robot-remote-server*</code> inside the <code>init-handler</code> macro and in the two
-functions that follow. Done so that XML-RPC server can offer the
+functions that follow. This has been done so that the XML-RPC server can offer the
 <code>stop_remote_server</code> command if desired.</p>
-</td><td class="codes" /></tr><tr><td class="docs"><p>Create handler for XML-RPC server. Set expose-stop to false to prevent exposing the <code>stop_remote_server</code> RPC command. Justification for using macro: delayed evaluation of <em>ns</em></p>
+</td><td class="codes" /></tr><tr><td class="docs"><p>Create handler for XML-RPC server. Set <code>expose-stop</code> to <code>false</code> to prevent exposing the <code>stop_remote_server</code> RPC command. Justification for using macro: delayed evaluation of <code>*ns*</code></p>
 </td><td class="codes" /><pre class="brush: clojure">(defmacro init-handler
   [expose-stop]
   (let [this-ns *ns*]
@@ -2640,51 +2685,5 @@ functions that follow. Done so that XML-RPC server can offer the
      (reset! *robot-remote-server* (run-jetty hndlr opts))))</pre></tr><tr><td class="docs"><p>Stop the global Jetty server instance</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn server-stop!
   []
-  (.stop @*robot-remote-server*))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#robot-remote-server.keyword" name="robot-remote-server.keyword"><h1 class="project-name">robot-remote-server.keyword</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes" /><pre class="brush: clojure">(ns robot-remote-server.keyword
-  (:use robot-remote-server.core)
-  (:import javax.swing.JOptionPane))</pre></tr><tr><td class="docs"><p>Documentation for myKeyword</p>
-</td><td class="codes" /><pre class="brush: clojure">(defn my-keyword
-  [arg1 arg2]
-  (println (str "My first keyword! Arg1: " arg1 ", Arg2: " arg2)))</pre></tr><tr><td class="docs"><p>Open a JOptionPane, just testing things</p>
-</td><td class="codes" /><pre class="brush: clojure">(defn open-dialog
-  []
-  (JOptionPane/showMessageDialog
-    nil "Hello, Clojure World!" "Greeting"
-    JOptionPane/INFORMATION_MESSAGE))</pre></tr><tr><td class="docs">
-</td><td class="codes" /><pre class="brush: clojure">(defn -main
-  []
-  (do (use 'robot-remote-server.core)
-      (server-start! (init-handler false))))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#robot-remote-server.util" name="robot-remote-server.util"><h1 class="project-name">robot-remote-server.util</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes" /><pre class="brush: clojure">(ns robot-remote-server.util)</pre></tr><tr><td class="docs"><p>TODO: Extend ResponseElements protocol to deal with nil</p>
-</td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes" /><pre class="brush: clojure">(comment
-  
-  (defn- handle-return-val
-    "Convert everything to RobotFramework-acceptable types. See implementations in other languages for examples"
-    [ret]
-    (condp class ret
-      java.lang.String                           ret
-      java.util.concurrent.atomic.AtomicInteger  ret
-      java.util.concurrent.atomic.AtomicLong     ret
-      java.math.BigDecimal                       ret
-      java.math.BigInteger                       ret
-      java.lang.Byte                             ret
-      java.lang.Double                           ret
-      java.lang.Float                            ret
-      java.lang.Integer                          ret
-      java.lang.Long                             ret
-      java.lang.Short                            ret
-      clojure.lang.PersistentVector              (map handle-return-val ret)
-      clojure.lang.PersistentArrayMap            (into {}
-                                                       (for [[k v] ret]
-                                                         [(.toString k) (handle-return-val v)]))
-      clojure.lang.PersistentTreeMap             (into {}
-                                                       (for [[k v] ret]
-                                                         [(.toString k) (handle-return-val v)]))
-      :else ret))
-
-  (defonce a-server (run-jetty #'app-handler {:port 8271 :join? false}))
-  (doto (Thread. #(run-jetty #'app-handler {:port 8271})) .start)
-)</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/fogus/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_robot-remote-server.core">robot-remote-server.core</li><li class="floating-toc-li" id="floating-toc_robot-remote-server.keyword">robot-remote-server.keyword</li><li class="floating-toc-li" id="floating-toc_robot-remote-server.util">robot-remote-server.util</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+  (.stop @*robot-remote-server*))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/fogus/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_com.semperos.robot-remote-server.keyword">com.semperos.robot-remote-server.keyword</li><li class="floating-toc-li" id="floating-toc_com.semperos.robot-remote-server.util">com.semperos.robot-remote-server.util</li><li class="floating-toc-li" id="floating-toc_com.semperos.robot-remote-server">com.semperos.robot-remote-server</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
        SyntaxHighlighter.all()</script></body></html>
