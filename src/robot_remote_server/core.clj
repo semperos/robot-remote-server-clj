@@ -21,8 +21,7 @@
   (:require [necessary-evil.core :as xml-rpc]
             [clojure.string :as str])
   (:import org.mortbay.jetty.Server)
-  (:use [robot-remote-server keyword]
-        ring.adapter.jetty))
+  (:use ring.adapter.jetty))
 
 (defonce *robot-remote-server* (atom nil))
 
