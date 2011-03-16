@@ -5,4 +5,4 @@
                  [necessary-evil "1.0.0-SNAPSHOT"]]
   :dev-dependencies [[swank-clojure "1.3.0-SNAPSHOT"]
                      [marginalia "0.5.0"]]
-  :main robot-remote-server.keyword)
+  :main robot-remote-server.keywords)
