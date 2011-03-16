@@ -1,6 +1,7 @@
 (ns robot-remote-server.keywords
   (:use robot-remote-server.core)
-  (:import javax.swing.JOptionPane))
+  (:import javax.swing.JOptionPane)
+  (:gen-class :main true))
 
 (defn my-keyword
   "Documentation for myKeyword"
