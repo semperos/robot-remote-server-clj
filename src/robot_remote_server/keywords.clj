@@ -1,4 +1,4 @@
-(ns robot-remote-server.keyword
+(ns robot-remote-server.keywords
   (:use robot-remote-server.core)
   (:import javax.swing.JOptionPane))
 
