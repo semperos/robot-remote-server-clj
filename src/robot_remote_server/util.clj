@@ -1,33 +1,16 @@
 (ns robot-remote-server.util)
 
-;;; TODO: Extend ResponseElements protocol to deal with nil
-
-(comment
-  
-  (defn- handle-return-val
+(defn handle-return-val
     "Convert everything to RobotFramework-acceptable types. See implementations in other languages for examples"
     [ret]
-    (condp class ret
-      java.lang.String                           ret
-      java.util.concurrent.atomic.AtomicInteger  ret
-      java.util.concurrent.atomic.AtomicLong     ret
-      java.math.BigDecimal                       ret
-      java.math.BigInteger                       ret
-      java.lang.Byte                             ret
-      java.lang.Double                           ret
-      java.lang.Float                            ret
-      java.lang.Integer                          ret
-      java.lang.Long                             ret
-      java.lang.Short                            ret
-      clojure.lang.PersistentVector              (map handle-return-val ret)
-      clojure.lang.PersistentArrayMap            (into {}
-                                                       (for [[k v] ret]
-                                                         [(.toString k) (handle-return-val v)]))
-      clojure.lang.PersistentTreeMap             (into {}
-                                                       (for [[k v] ret]
-                                                         [(.toString k) (handle-return-val v)]))
+    (cond
+      (= (class ret) java.lang.String)              ret
+      (contains?
+       (supers (class ret)) java.lang.Number)       ret
+      (map? ret)                                    (into {}
+                                                          (for [[k v] ret]
+                                                            [(.toString k) (handle-return-val v)]))
+      (contains?
+       (supers (class ret)) java.util.Collection)   (map handle-return-val ret)
+      (nil? ret)                                    ""
       :else ret))
-
-  (defonce a-server (run-jetty #'app-handler {:port 8271 :join? false}))
-  (doto (Thread. #(run-jetty #'app-handler {:port 8271})) .start)
-)

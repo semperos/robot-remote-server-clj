@@ -16,12 +16,13 @@
 ;;
 ;; Because RF sends requests to the /RPC2 path, that has been enforced for this
 ;; server using the `wrap-rpc` middleware defined in this namespace.
-;; 
+;;
 (ns robot-remote-server.core
   (:require [necessary-evil.core :as xml-rpc]
             [clojure.string :as str])
   (:import org.mortbay.jetty.Server)
-  (:use ring.adapter.jetty))
+  (:use robot-remote-server.util
+        ring.adapter.jetty))
 
 (defonce *robot-remote-server* (atom nil))
 
@@ -67,21 +68,24 @@
 (defn run-keyword*
   "Given a RF-formatted string representation of a Clojure function `kw-name` in the `a-ns` namespace called with `args` as a vector, evaluate the function"
   [a-ns kw-name args]
-  (let [result {:status "PASS", ; RF expects this map
-                :return "",
-                :output "",
-                :error "",
-                :traceback ""}
+  (let [result (atom {:status "PASS",        ; RF expects this map
+                      :return "",
+                      :output "",
+                      :error "",
+                      :traceback ""})
         clj-kw-name (clojurify-name kw-name) ; translate RF keyword to Clojure fn
         a-fn (find-kw-fn a-ns clj-kw-name)
         output (with-out-str (try
-                                (apply a-fn args)
-                                (catch Exception e
-                                  (assoc result
-                                    :status "FAIL"
-                                    :error (with-out-str (prn e))
-                                    :traceback (with-out-str (.printStackTrace e))))))]
-    (assoc result :output output :return output)))
+                               (swap! result assoc :return
+                                      (handle-return-val (apply a-fn args)))
+                               (catch Exception e
+                                 (swap! result assoc
+                                        :status "FAIL"
+                                        :error (with-out-str (prn e))
+                                        :traceback (with-out-str (.printStackTrace e)))
+                                 @result)))]
+    (swap! result assoc :output output)
+    @result))
 
 ;; WARNING: Less-than-functional code follows
 ;;
