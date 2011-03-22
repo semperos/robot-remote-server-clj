@@ -1,5 +1,4 @@
 (ns robot-remote-server.keywords
-  (:require [clj-webdriver.core :as wd])
   (:use robot-remote-server.core)
   (:import javax.swing.JOptionPane)
   (:gen-class :main true))
@@ -15,11 +14,6 @@
   (JOptionPane/showMessageDialog
     nil "Hello, Clojure World!" "Greeting"
     JOptionPane/INFORMATION_MESSAGE))
-
-(defn open-browser
-  "Open a browser"
-  [browser]
-  (wd/new-driver (keyword browser)))
 
 (defn -main
   []
