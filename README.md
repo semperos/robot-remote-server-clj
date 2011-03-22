@@ -55,7 +55,7 @@ Thanks to [Michael Fogus][fogus-site] for his library [marginalia][marg-github],
 
 ## License
 
-Copyright (C) 2010 FIXME
+Copyright (C) 2010 Daniel L. Gregoire (semperos)
 
 Distributed under the Eclipse Public License, the same as Clojure.
 
