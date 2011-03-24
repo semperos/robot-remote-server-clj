@@ -47,8 +47,14 @@
   "Get arguments for a given RF keyword function identified by the string `kw-name` and located in the `a-ns` namespace"
   [a-ns kw-name]
   (let [clj-kw-name (clojurify-name kw-name)
-        a-fn (find-kw-fn a-ns clj-kw-name)]
-    (vec (map str (last (:arglists (meta a-fn)))))))
+        a-fn (find-kw-fn a-ns clj-kw-name)
+        args-as-strs (map str (last (:arglists (meta a-fn))))]
+    (if (= "&" ; support variable arity
+           (nth args-as-strs (- (count args-as-strs) 2)))
+      (let [last-arg (last args-as-strs)
+            trimmed-args (drop-last 2 args-as-strs)]
+        (conj (vec trimmed-args) (str "*" last-arg)))
+      args-as-strs)))
 
 (defn get-keyword-documentation*
   "Get documentation string for a given RF keyword function identified by the string `kw-name` and located in the `a-ns` namespace"
