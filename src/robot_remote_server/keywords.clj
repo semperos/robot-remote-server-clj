@@ -11,7 +11,7 @@
 (defn sample-keyword
   "Documentation for my Sample Keyword"
   [arg1 arg2 & other-ones]
-  (println (str "My sample keyword! Arg1: " arg1 ", and Arg2: " arg2)))
+  (println (str "My sample keyword! Arg1: " arg1 ", and Arg2: " arg2 ", and The Rest: " (apply str other-ones))))
 
 (defn open-dialog
   "Open a JOptionPane, just testing things"
