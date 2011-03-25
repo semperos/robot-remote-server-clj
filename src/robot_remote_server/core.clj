@@ -24,7 +24,8 @@
   (:use robot-remote-server.util
         ring.adapter.jetty))
 
-(defonce *robot-remote-server* (atom nil))
+(defonce rrs-instance (atom nil))
+(def enable-remote-stop (atom true))
 
 (defn find-kw-fn
   "Given a namespace and a fn-name as string, return the function in that namespace by that name"
@@ -64,13 +65,17 @@
     (:doc (meta a-fn))))
 
 (defn get-keyword-names*
-  "Get a list of RF keyword functions located in the `a-ns` namespace"
+  "Get a vector of RF keyword functions located in the `a-ns` namespace"
   [a-ns]
-  (vec
-   (map #(str/replace % "-" "_") ; RF expects underscores
-        (remove #(or (re-find #"(\*|!)" %) (re-find #"^-" %)) ; non-keyword functions
-                (map str
-                     (map first (ns-publics a-ns)))))))
+  (conj
+   (vec
+    (map #(str/replace % "-" "_")       ; RF expects underscores
+         (remove #(or (re-find #"(\*|!)" %) (re-find #"^-" %)) ; non-keyword functions
+                 (map str
+                      (map first (ns-publics a-ns))))))
+   "stop_remote_server"))
+
+(declare stop-remote-server*)
 (defn run-keyword*
   "Given a RF-formatted string representation of a Clojure function `kw-name` in the `a-ns` namespace called with `args` as a vector, evaluate the function"
   [a-ns kw-name args]
@@ -80,7 +85,9 @@
                       :error "",
                       :traceback ""})
         clj-kw-name (clojurify-name kw-name) ; translate RF keyword to Clojure fn
-        a-fn (find-kw-fn a-ns clj-kw-name)
+        a-fn (if (= kw-name "stop_remote_server")
+               stop-remote-server*
+               (find-kw-fn a-ns clj-kw-name))
         output (with-out-str (try
                                (swap! result assoc :return
                                       (handle-return-val (apply a-fn args)))
@@ -95,49 +102,52 @@
 
 ;; WARNING: Less-than-functional code follows
 ;;
-;; Use of `*robot-remote-server*` inside the `init-handler` macro and in the two
+;; Use of `rrs-instance` inside the `init-handler` macro and in the two
 ;; functions that follow. This has been done so that the XML-RPC server can offer the
 ;; `stop_remote_server` command if desired.
 
+(defn stop-remote-server*
+  "Either stop the remote server (if enabled), or send a message explaining that it's disabled and what to do if you want to enable it"
+  []
+  (if (true? @enable-remote-stop)
+    (.stop @rrs-instance)
+    (let [warning-msg (str "Stopping the server remotely has been disabled. "
+                           "You can enable this functionality by passing 'true' "
+                           "to the 'init-handler' macro when starting the remote server. "
+                           "See the project documentation at "
+                           "http://github.com/semperos/robot-remote-server-clj "
+                           "for more details.")]
+      (print warning-msg)
+      warning-msg)))
+
 (defmacro init-handler
   "Create handler for XML-RPC server. Set `expose-stop` to `false` to prevent exposing the `stop_remote_server` RPC command. Justification for using macro: delayed evaluation of `*ns*`"
-  [expose-stop]
+  [remote-stop-bool]
   (let [this-ns *ns*]
-    (if (true? expose-stop)
-      `(->
-        (xml-rpc/end-point
-         {:get_keyword_arguments       (fn [kw-name#]
-                                         (get-keyword-arguments* ~this-ns kw-name#))
-          :get_keyword_documentation   (fn [kw-name#]
-                                         (get-keyword-documentation* ~this-ns kw-name#))
-          :get_keyword_names           (fn []
-                                         (get-keyword-names* ~this-ns))
-          :run_keyword                 (fn [kw-name# args#]
-                                         (run-keyword* ~this-ns kw-name# args#))
-          :stop_remote_server          (fn []
-                                         (.stop @*robot-remote-server*))})
-        wrap-rpc)
-      `(->
-        (xml-rpc/end-point
-         {:get_keyword_arguments       (fn [kw-name#]
-                                         (get-keyword-arguments* ~this-ns kw-name#))
-          :get_keyword_documentation   (fn [kw-name#]
-                                         (get-keyword-documentation* ~this-ns kw-name#))
-          :get_keyword_names           (fn []
-                                         (get-keyword-names* ~this-ns))
-          :run_keyword                 (fn [kw-name# args#]
-                                         (run-keyword* ~this-ns kw-name# args#))})
-        wrap-rpc))))
+    (reset! enable-remote-stop remote-stop-bool)
+    `(->
+      (xml-rpc/end-point
+       {:get_keyword_arguments       (fn [kw-name#]
+                                       (get-keyword-arguments* ~this-ns kw-name#))
+        :get_keyword_documentation   (fn [kw-name#]
+                                       (get-keyword-documentation* ~this-ns kw-name#))
+        :get_keyword_names           (fn []
+                                       (get-keyword-names* ~this-ns))
+        :run_keyword                 (fn [kw-name# args#]
+                                       (run-keyword* ~this-ns kw-name# args#))
+        :stop_remote_server          (fn []
+                                       (stop-remote-server*))})
+      wrap-rpc)))
 
 (defn server-start!
   "Given a Ring handler `hndlr`, start a Jetty server"
   ([hndlr] (server-start! hndlr {:port 8270, :join? false}))
   ([hndlr opts]
-     (when (and (not (nil? @*robot-remote-server*)) (.isRunning @*robot-remote-server*))
-       (.stop @*robot-remote-server*))
-     (reset! *robot-remote-server* (run-jetty hndlr opts))))
+     (when (and (not (nil? @rrs-instance)) (.isRunning @rrs-instance))
+       (.stop @rrs-instance))
+     (reset! rrs-instance (run-jetty hndlr opts))))
 
 (defn server-stop!
   "Stop the global Jetty server instance"
   []
-  (.stop @*robot-remote-server*))
+  (.stop @rrs-instance))
