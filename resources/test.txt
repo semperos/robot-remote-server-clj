@@ -5,3 +5,4 @@ Library         Remote  http://localhost:8270
 Test Keywords
     Open Dialog
     Sample Keyword  Hello  Clojure!  Welcome to Robot Framework.  Test away!
+    Stop Remote Server
