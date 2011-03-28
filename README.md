@@ -15,15 +15,18 @@ Once you're ready to run your own keyword library, read on.
 In the namespace you've used to write your RobotFramework keyword library, include the following:
 
     (use 'robot-remote-server.core)
-    (server-start! (init-handler false))
+    (server-start! (init-handler))
 
-This code should be placed inside the namespace that contains all your RobotFramework keywords; the `init-handler` macro generates a Ring handler that uses the current namespace to find RobotFramework keywords. Be not afraid to spread you namespace over multiple files using `(in-ns 'name-of-namescape)` and `(load file_name)` to make your keyword codebase more manageable. The function `(server-start!)` accepts a second argument as a map of options to pass to jetty, defaulting to `{:port 8270, :join false?}`. To stop the server, use the `(server-stop!)` function.
+This code should be placed inside the namespace that contains all your RobotFramework keywords; the `init-handler` macro generates a Ring handler that uses the current namespace to find RobotFramework keywords. Be not afraid to spread you namespace over multiple files using `(in-ns 'name-of-namescape)` and `(load file_name)` to make your keyword codebase more manageable.
 
-By default, this remote server does not implement the `stop_remote_server` command as suggested by the RobotFramework spec. You can enable it by starting the server as follows:
+The function `server-start!` accepts a third optional argument of `true` or `false`: `true` if you want to be able to stop the server remotely via an XML-RPC call to `stop_remote_server` or via the `Stop Remote Server` RobotFramework keyword, `false` if you do not want to expose this functionality to end users but instead will call the Clojure function `server-stop!` yourself or kill the process at the system level using `Ctrl+C`, `C-c C-c` or equivalent. The default is `true` to remain faithful to the RobotFramework spec and implementations in other languages.
 
-    (server-start! (init-handler true))
+The function also accepts an optional fourth argument, which is a map of options to pass to jetty, defaulting to `{:port 8270, :join false?}`.
 
-You can then stop the server simply by calling the `stop_remote_server` command over RPC, in addition to using the `(server-stop!)` function. Refer to [brehaut's necessary-evil project][ne] for help using XML-RPC in Clojure.
+To be clear, here is how you would start the server with these extra options (here, disabling the remote stopping functionality and changing the port for the server application):
+
+    (use 'robot-remote-server.core)
+    (server-start! (init-handler) false {:port 8888, :join? false})
 
 ### Writing RobotFramework Keywords in Clojure
 
