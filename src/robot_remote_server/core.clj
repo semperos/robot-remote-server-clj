@@ -25,7 +25,7 @@
         ring.adapter.jetty))
 
 (defonce rrs-instance (atom nil))
-(def enable-remote-stop (atom true))
+(defonce enable-remote-stop (atom nil))
 
 (defn find-kw-fn
   "Given a namespace and a fn-name as string, return the function in that namespace by that name"
@@ -79,26 +79,26 @@
 (defn run-keyword*
   "Given a RF-formatted string representation of a Clojure function `kw-name` in the `a-ns` namespace called with `args` as a vector, evaluate the function"
   [a-ns kw-name args]
-  (let [result (atom {:status "PASS",        ; RF expects this map
-                      :return "",
-                      :output "",
-                      :error "",
-                      :traceback ""})
-        clj-kw-name (clojurify-name kw-name) ; translate RF keyword to Clojure fn
-        a-fn (if (= kw-name "stop_remote_server")
-               stop-remote-server*
-               (find-kw-fn a-ns clj-kw-name))
-        output (with-out-str (try
-                               (swap! result assoc :return
-                                      (handle-return-val (apply a-fn args)))
-                               (catch Exception e
-                                 (swap! result assoc
-                                        :status "FAIL"
-                                        :error (with-out-str (prn e))
-                                        :traceback (with-out-str (.printStackTrace e)))
-                                 @result)))]
-    (swap! result assoc :output output)
-    @result))
+  (if (= kw-name "stop_remote_server")
+    (stop-remote-server*)
+    (let [result (atom {:status "PASS",        ; RF expects this map
+                        :return "",
+                        :output "",
+                        :error "",
+                        :traceback ""})
+          clj-kw-name (clojurify-name kw-name) ; translate RF keyword to Clojure fn
+          a-fn (find-kw-fn a-ns clj-kw-name)
+          output (with-out-str (try
+                                 (swap! result assoc :return
+                                        (handle-return-val (apply a-fn args)))
+                                 (catch Exception e
+                                   (swap! result assoc
+                                          :status "FAIL"
+                                          :error (with-out-str (prn e))
+                                          :traceback (with-out-str (.printStackTrace e)))
+                                   @result)))]
+      (swap! result assoc :output output)
+      @result)))
 
 ;; WARNING: Less-than-functional code follows
 ;;
@@ -110,21 +110,23 @@
   "Either stop the remote server (if enabled), or send a message explaining that it's disabled and what to do if you want to enable it"
   []
   (if (true? @enable-remote-stop)
-    (.stop @rrs-instance)
+    (do
+      (future
+        (Thread/sleep 3000)
+        (.stop @rrs-instance))
+      {:status "PASS", :return "The remote server has been stopped successfully.", :output "The remote server has been stopped successfully.", :error "", :traceback ""})
     (let [warning-msg (str "Stopping the server remotely has been disabled. "
                            "You can enable this functionality by passing 'true' "
-                           "to the 'init-handler' macro when starting the remote server. "
+                           "to the 'server-start!' function when starting the remote server. "
                            "See the project documentation at "
                            "http://github.com/semperos/robot-remote-server-clj "
                            "for more details.")]
-      (print warning-msg)
-      warning-msg)))
+      {:status "PASS", :return warning-msg, :output warning-msg, :error "", :traceback ""})))
 
 (defmacro init-handler
   "Create handler for XML-RPC server. Set `expose-stop` to `false` to prevent exposing the `stop_remote_server` RPC command. Justification for using macro: delayed evaluation of `*ns*`"
-  [remote-stop-bool]
+  []
   (let [this-ns *ns*]
-    (reset! enable-remote-stop remote-stop-bool)
     `(->
       (xml-rpc/end-point
        {:get_keyword_arguments       (fn [kw-name#]
@@ -140,11 +142,15 @@
       wrap-rpc)))
 
 (defn server-start!
-  "Given a Ring handler `hndlr`, start a Jetty server"
-  ([hndlr] (server-start! hndlr {:port 8270, :join? false}))
-  ([hndlr opts]
+  "Given a Ring handler `hndlr`, an optional boolean to allow remote server stopping `enable-stop`, and an optional map of options to pass to Jetty, start a Jetty server"
+  ([hndlr] (server-start! hndlr true {:port 8270, :join? false})) ; default to `true` to remain faithful to the RF spec
+  ([hndlr enable-stop] (server-start! hndlr enable-stop {:port 8270, :join? false}))
+  ([hndlr enable-stop opts]
      (when (and (not (nil? @rrs-instance)) (.isRunning @rrs-instance))
        (.stop @rrs-instance))
+     (if (true? enable-stop)
+       (reset! enable-remote-stop true)
+       (reset! enable-remote-stop false))
      (reset! rrs-instance (run-jetty hndlr opts))))
 
 (defn server-stop!
