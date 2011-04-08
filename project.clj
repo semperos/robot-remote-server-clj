@@ -1,4 +1,4 @@
-(defproject robot-remote-server "0.2.4"
+(defproject robot-remote-server "0.2.5"
   :description "Implementation of a RobotFramework remote server in Clojure"
   :dependencies [[org.clojure/clojure "1.2.0"]
                  [ring/ring-jetty-adapter "0.3.6"]
