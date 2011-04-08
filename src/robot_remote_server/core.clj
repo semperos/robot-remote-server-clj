@@ -50,8 +50,8 @@
   (let [clj-kw-name (clojurify-name kw-name)
         a-fn (find-kw-fn a-ns clj-kw-name)
         args-as-strs (map str (last (:arglists (meta a-fn))))]
-    (if (= "&" ; support variable arity
-           (nth args-as-strs (- (count args-as-strs) 2)))
+    (if (and (> (count args-as-strs) 1)
+             (= "&" (nth args-as-strs (- (count args-as-strs) 2))))
       (let [last-arg (last args-as-strs)
             trimmed-args (drop-last 2 args-as-strs)]
         (conj (vec trimmed-args) (str "*" last-arg)))
