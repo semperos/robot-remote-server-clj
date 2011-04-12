@@ -20,7 +20,8 @@
 (ns robot-remote-server.core
   (:require [necessary-evil.core :as xml-rpc]
             [clojure.string :as str])
-  (:import org.mortbay.jetty.Server)
+  (:import org.mortbay.jetty.Server
+           org.apache.commons.lang.StringEscapeUtils)
   (:use robot-remote-server.util
         ring.adapter.jetty))
 
@@ -90,12 +91,18 @@
           a-fn (find-kw-fn a-ns clj-kw-name)
           output (with-out-str (try
                                  (swap! result assoc :return
-                                        (handle-return-val (apply a-fn args)))
+                                        (->> (apply a-fn args)
+                                             handle-return-val
+                                             StringEscapeUtils/escapeXml))
                                  (catch Exception e
                                    (swap! result assoc
                                           :status "FAIL"
-                                          :error (with-out-str (prn e))
-                                          :traceback (with-out-str (.printStackTrace e)))
+                                          :error (->> (prn e)
+                                                      with-out-str
+                                                      StringEscapeUtils/escapeXml)
+                                          :traceback (->> (.printStackTrace e)
+                                                          with-out-str
+                                                          StringEscapeUtils/escapeXml))
                                    @result)))]
       (swap! result assoc :output output)
       @result)))

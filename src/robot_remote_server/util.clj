@@ -1,4 +1,5 @@
-(ns robot-remote-server.util)
+(ns robot-remote-server.util
+  (:require [clojure.string :as str]))
 
 (defn handle-return-val
     "Convert everything to RobotFramework-acceptable types. See implementations in other languages for examples"
@@ -8,7 +9,7 @@
       (number? ret)  ret
       (map? ret)     (into {}
                            (for [[k v] ret]
-                             [(.toString k) (handle-return-val v)]))
+                             [(str k) (handle-return-val v)]))
       (coll? ret)    (map handle-return-val ret)
       (nil? ret)     ""
-      :else ret))
+      :else (str ret)))
