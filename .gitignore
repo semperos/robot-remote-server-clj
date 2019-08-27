@@ -10,3 +10,5 @@ log.html
 *#
 *\#
 docs
+target/*
+.nrepl-port

@@ -19,6 +19,7 @@
 ;;
 (ns robot-remote-server.core
   (:require [necessary-evil.core :as xml-rpc]
+            [necessary-evil.value :as value]
             [clojure.string :as str])
   (:import org.mortbay.jetty.Server
            org.apache.commons.lang.StringEscapeUtils)
@@ -42,8 +43,9 @@
   "Ring middleware to limit server's response to the particular path that RobotFramework petitions"
   [handler]
   (fn [req]
-    (when (= "/RPC2" (:uri req))
-      (handler req))))
+    (binding [value/*allow-nils* true]
+      (when (= "/RPC2" (:uri req))
+        (handler req)))))
 
 (defn get-keyword-arguments*
   "Get arguments for a given RF keyword function identified by the string `kw-name` and located in the `a-ns` namespace"
